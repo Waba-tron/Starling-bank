@@ -116,14 +116,14 @@ public class AccountService {
     }
 
     public ListBankAccountsResponse listAccounts(String userId) {
-        
+
         log.info("Listing accounts: userId={}", userId);
         User user = userLookup.findById(userId);
 
         List<BankAccountResponse> accounts = bankAccountRepository.findByUser(user)
                 .stream()
                 .map(this::toResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         return new ListBankAccountsResponse(accounts);
     }
