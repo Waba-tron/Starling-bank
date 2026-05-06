@@ -32,23 +32,26 @@ public class TransactionService {
     private final BankAccountLookup bankAccountLookup;
 
     public TransactionService(TransactionRepository transactionRepository,
-                              BankAccountRepository bankAccountRepository,
-                              BankAccountLookup bankAccountLookup) {
+            BankAccountRepository bankAccountRepository,
+            BankAccountLookup bankAccountLookup) {
         this.transactionRepository = transactionRepository;
         this.bankAccountRepository = bankAccountRepository;
         this.bankAccountLookup = bankAccountLookup;
     }
 
     @Transactional
-    public TransactionResponse createTransaction(String accountNumber, String userId, CreateTransactionRequest request) {
-        log.info("Creating transaction: accountNumber={} userId={} type={} amount={}", accountNumber, userId, request.getType(), request.getAmount());
+    public TransactionResponse createTransaction(String accountNumber, String userId,
+            CreateTransactionRequest request) {
+        log.info("Creating transaction: accountNumber={} userId={} type={} amount={}", accountNumber, userId,
+                request.getType(), request.getAmount());
         BankAccount account = bankAccountLookup.findAccountByAccountNumber(accountNumber);
 
         if (!account.getUser().getId().equals(userId)) {
             throw new ForbiddenException();
         }
 
-        if (request.getType() == TransactionType.WITHDRAWAL && account.getBalance().compareTo(request.getAmount()) < 0) {
+        if (request.getType() == TransactionType.WITHDRAWAL
+                && account.getBalance().compareTo(request.getAmount()) < 0) {
             throw new InsufficientFundsException();
         }
 
@@ -71,13 +74,15 @@ public class TransactionService {
         transaction.setCreatedTimestamp(LocalDateTime.now());
 
         transactionRepository.save(transaction);
-        log.info("Transaction created: transactionId={} accountNumber={} type={} amount={}", transaction.getId(), accountNumber, request.getType(), request.getAmount());
+        log.info("Transaction created: transactionId={} accountNumber={} type={} amount={}", transaction.getId(),
+                accountNumber, request.getType(), request.getAmount());
 
         return toResponse(transaction);
     }
 
     public TransactionResponse fetchTransaction(String accountNumber, String transactionId, String userId) {
-        log.info("Fetching transaction: transactionId={} accountNumber={} userId={}", transactionId, accountNumber, userId);
+        log.info("Fetching transaction: transactionId={} accountNumber={} userId={}", transactionId, accountNumber,
+                userId);
         BankAccount account = bankAccountLookup.findAccountByAccountNumber(accountNumber);
 
         if (!account.getUser().getId().equals(userId)) {
@@ -105,8 +110,8 @@ public class TransactionService {
         List<TransactionResponse> transactions = transactionRepository.findByBankAccount(account)
                 .stream()
                 .map(this::toResponse)
-                .collect(Collectors.toList());
-
+                .toList();
+                
         return new ListTransactionsResponse(transactions);
     }
 
